@@ -1,14 +1,13 @@
-function add(n1, n2, showResult, phrase) {
-    var result = n1 + n2;
-    if (showResult) {
-        console.log(phrase + result);
-    }
-    else {
-        return n1 + n2;
-    }
+//  unknown is stricter than any, and so it is a better option.  
+var userInput;
+var userName;
+userInput = 5;
+userInput = 'Max';
+if (typeof userInput === 'string') {
+    userName = userInput;
 }
-var number1 = 5;
-var number2 = 2.8;
-var printResult = true;
-var resultPhrase = 'Result is: ';
-add(number1, number2, printResult, resultPhrase);
+// with any, userName = userInput would work, whereas for unknown there is some type checking needed. 
+var generateError = function (message, code) {
+    throw { message: message, errorCode: code };
+};
+generateError('An error occured', 500);
