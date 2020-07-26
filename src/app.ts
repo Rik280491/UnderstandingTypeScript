@@ -1,60 +1,78 @@
-// HOW TS WORKS WITH ES6
+class Department {
+	// private readonly id: number; (readonly - cannot be changed after initialisation)
+	// public name: string;
+	protected employees: string[] = [];
 
-// ARROW FUNCTIONS
+	constructor(private readonly id: number, public name: string) {}
+    
 
-// b has a default. default args must be last in the list, a having a default wouldnt work. 
-const add = (a: number, b: number = 1) => a + b
+	// (this: department) tells TS that this should always refer to an instance of the Department class
+	describe(this: Department) {
+		console.log(`Department (${this.id}): ${this.name}`);
+	}
 
-const printOutput = (output: string | number) => console.log(output)
+	addEmployee(employee: string) {
+		this.employees.push(employee);
+	}
 
-// printOutput(add(5, 2))
-
-const button = document.querySelector('button')
-
-if (button) {
-    button.addEventListener('click', event => console.log(event))
+	printEmployeeInfo() {
+		console.log(this.employees.length);
+		console.log(this.employees);
+	}
 }
 
-printOutput(add(5)) // 6
 
-// SPREAD OPERATOR
 
-const hobbies = ['Sports', 'Cooking'];
-const activeHobbies = ['Hiking']
+const accounting = new Department(5, "Accounting");
 
-activeHobbies.push(...hobbies) // ['Hiking', 'Sports', 'Cooking']
+accounting.addEmployee("Max");
+console.log(accounting);
 
-const person = {
-    firstName: 'Rik',
-    age: 29,
+
+// accounting.employees[1] = 'Anna' - not ideal. We only want one uniform approach. if addEmployee func has validation for example, we would lose that.
+// TS private (see constructor) stops this. Only methods inside the class (not in subclasses: use protected in this case) can access the employees property.
+
+accounting.describe();
+accounting.printEmployeeInfo();
+
+
+// INHERITANCE // 
+
+class ITDepartment extends Department {
+    constructor(id: number, public admins: string[]) {
+        super(id, 'IT');
+    }
 }
 
-const copiedPerson = { ...person }
+const computing = new ITDepartment(29, ['Max'])
+computing.addEmployee("Rik")
+console.log(computing)
 
 
-// REST PARAMS
+class AccountingDepartment extends Department {
+    constructor(id: number, private reports: string[]) {
+        super(id, 'Accounting')
+    }
 
-// don't have to set a number of params. passed into the function as an array. 
+    // overrides superclass method of the same name
+    addEmployee(name: string) {
+        if (name === 'Max') {
+            return
+        }
+        this.employees.push(name)
+    }
+    addReport(text: string) {
+        this.reports.push(text)
+    }
 
-const sum = (...numbers: number[]) => {
-   return numbers.reduce((currentResult, currentValue) => {
-        return currentResult + currentValue
-    }, 0)
+    printReports() {
+        console.log(this.reports)
+    }
 }
 
-console.log(sum(5, 10, 2, 3.7));
+const auditing = new AccountingDepartment( 56, [])
 
-
-// ARRAY & OBJECT DESTRUCTURING
-
-// also works with let
-const [hobby1, hobby2, ...remainingHobbies] = activeHobbies
-// hobby 1 = 'Hiking'
-// hobby 2 = 'Sports'
-// remaingingHobbies = ['Cooking']
-
-// can rename using alias, but does not change orig person object - this is JS sytax, not TS
-const { firstName: nickname, age } = person
-console.log(nickname) // Rik
-console.log(person) // { firstName: "Rik", age: 29} 
-
+auditing.addReport('Spend within your means')
+auditing.addEmployee('Mike')
+auditing.printReports()
+console.log(auditing)
