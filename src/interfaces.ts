@@ -1,7 +1,7 @@
 // INTERFACES //
 
 // similar to custom types. interface is only used on objects. Cant have values inside an interface
-// a ? marks the property as optional. Note: ? also works in classes
+// a ? marks the property as optional. Note: also works on methods i.e greet?():void, and in classes
 interface Named {
     readonly name: string
     nickname?: string
