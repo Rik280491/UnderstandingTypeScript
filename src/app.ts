@@ -1,173 +1,54 @@
-// INTERSECTION TYPES
-// Note: could use interfaces inheritance too
+// GENERICS
 
-type Admin = {
-	name: string;
-	privileges: string[];
-};
+// Array<string> is the same as string[]
+const names: Array<string> = ["Rik", "Max"];
 
-type Employee = {
-	name: string;
-	startDate: Date;
-};
+// Promise<string> says that this is a promise that will yield a string
+const promise: Promise<string> = new Promise((resolve, reject) => {
+	setTimeout(() => {
+		resolve("This is done!");
+	}, 2000);
+});
 
-type ElevatedEmployee = Admin & Employee;
+// so if we declare Promise<number> this would bug out - cant call split on number
+promise.then((data) => {
+	data.split(" ");
+});
 
-const e1: ElevatedEmployee = {
-	name: "Rik",
-	privileges: ["create-server"],
-	startDate: new Date(),
-};
+// CUSTOM GENERICS
 
-type Combinable = string | number;
-type Numeric = number | boolean;
-
-type Universal = Combinable & Numeric;
-// Universal type is number because it intersects in both.
-
-// TYPE GUARDS
-
-// besides being an example of type guarding, this is also a FUNCTION OVERLOAD (arrow fns incompatible)
-function add(a: string, b: string): string;
-function add(a: string, b: number): string;
-function add(a: number, b: string): string;
-function add(a: number, b: number): number;
-function add(a: Combinable, b: Combinable) {
-	if (typeof a === "string" || typeof b === "string") {
-		return a.toString() + b.toString();
-	}
-	return a + b;
+// types are set dynamically when we call the function
+// extends is a constraint, must now pass objects in.
+function merge<T extends object, U extends object>(objA: T, objB: U) {
+	return Object.assign(objA, objB);
 }
 
-const result = add("Rik", "B");
-result.split("");
-// this would error out if not for the function overloads.
+const mergedObj = merge({ name: "Rik" }, { age: 29 });
+console.log(mergedObj.name);
 
-// typeof is JS and checks at runtime. Not always a good option for type guarding TS only features.
-
-type UnknownEmployee = Employee | Admin;
-
-// recap. js 'in' operator checks if it is a property
-const printEmployeeInfo = (emp: UnknownEmployee) => {
-	console.log(`Name: ${emp.name}`);
-	if ("privileges" in emp) {
-		console.log(`Privileges: ${emp.privileges}`);
-	}
-	if ("startDate" in emp) {
-		console.log(`Start Date: ${emp.startDate}`);
-	}
-};
-
-printEmployeeInfo(e1);
-
-// JS instanceof
-class Car {
-	drive() {
-		console.log("Driving...");
-	}
+// without this (or a custom type) we cannot call length on element in the countAndDescribe fn. We are ensuring element has a length property
+interface Lenghty {
+	length: number;
 }
 
-class Truck {
-	drive() {
-		console.log("Trucking...");
+function countAndDescribe<T extends Lenghty>(element: T): [T, string] {
+	let descriptionText = "No value";
+	if (element.length === 1) {
+		descriptionText = "Has 1 element";
+	} else if (element.length > 1) {
+		descriptionText = `Has ${element.length} elements`;
 	}
-
-	loadCargo(amount: number) {
-		console.log(`Loading cargo: ${amount} `);
-	}
+	return [element, descriptionText];
 }
 
-type Vehicle = Car | Truck;
+console.log(countAndDescribe("Testing"));
 
-const v1 = new Car();
-const v2 = new Truck();
-
-// note: can use in operator here
-const useVehicle = (vehicle: Vehicle) => {
-	vehicle.drive();
-	if (vehicle instanceof Truck) {
-		vehicle.loadCargo(1000);
-	}
-};
-
-useVehicle(v2);
-
-// DISCRIMINATED UNIONS
-// available when working with object types
-
-// setting type or kind (name doesnt matter) to ensure type safety.
-interface Bird {
-	type: "bird";
-	flyingSpeed: number;
+// keyof constraint. To tell TS that U is a key in the U object.
+function extractAndConvert<T extends object, U extends keyof T>(
+	obj: T,
+	key: U
+) {
+	return obj[key];
 }
 
-interface Horse {
-	type: "horse";
-	runningSpeed: number;
-}
-
-type Animal = Bird | Horse;
-
-// cannot use instanceof as interface is a TS feature
-const animalSpeed = (animal: Animal) => {
-	let speed;
-	switch (animal.type) {
-		case "bird":
-			speed = animal.flyingSpeed;
-			break;
-		case "horse":
-			speed = animal.runningSpeed;
-	}
-	console.log(`Moving at speed ${speed}`);
-};
-
-animalSpeed({ type: "bird", flyingSpeed: 10 });
-
-// TYPE CASTING
-
-// ! tells TS that it is not null, that it exists in our HTML
-
-// either syntax is valid. first syntax has issues with JSX and React
-const button = <HTMLButtonElement>document.querySelector("#main-button")!;
-// const userInput = <HTMLInputElement>document.getElementById('user-input')!
-const userInput = document.getElementById("user-input")! as HTMLInputElement;
-
-userInput.value = "Hello";
-
-// if not sure, use if check rather than ! and casting. If you cast, TS assumes element is not null
-if (userInput) {
-	(userInput as HTMLInputElement).value = "Hello";
-}
-
-// INDEX TYPES
-
-// dont know in advance how many properties we will have and their names
-interface ErrorContainer {
-	[prop: string]: string;
-}
-
-const errors: ErrorContainer = {
-	email: "Not a valid email!",
-	username: "Must start with a capital letter",
-};
-
-//  OPTIONAL CHAINING
-
-// what if we are fetching from backend and some data is not set at that point?
-const fetchedUserData = {
-	id: "u1",
-	name: "Rik",
-	job: { title: "Dev", description: "TypeScript" },
-};
-
-// ? here tells TS to only access if it exists. an if check.
-console.log(fetchedUserData?.job?.title);
-
-// NULLISH COALESCING
-
-const usersInput = null;
-
-// ?? - the nullish coelescing operator. Returns right side if left side is null or undefined (not if its an empty string)
-const storedData = usersInput ?? "DEFAULT";
-
-console.log(storedData);
+extractAndConvert({ name: "Rik" }, "name");

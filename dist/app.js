@@ -1,79 +1,31 @@
 "use strict";
-var _a;
-const e1 = {
-    name: "Rik",
-    privileges: ["create-server"],
-    startDate: new Date(),
-};
-function add(a, b) {
-    if (typeof a === "string" || typeof b === "string") {
-        return a.toString() + b.toString();
-    }
-    return a + b;
+const names = ["Rik", "Max"];
+const promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve("This is done!");
+    }, 2000);
+});
+promise.then((data) => {
+    data.split(" ");
+});
+function merge(objA, objB) {
+    return Object.assign(objA, objB);
 }
-const result = add("Rik", "B");
-result.split("");
-const printEmployeeInfo = (emp) => {
-    console.log(`Name: ${emp.name}`);
-    if ("privileges" in emp) {
-        console.log(`Privileges: ${emp.privileges}`);
+const mergedObj = merge({ name: "Rik" }, { age: 29 });
+console.log(mergedObj.name);
+function countAndDescribe(element) {
+    let descriptionText = "No value";
+    if (element.length === 1) {
+        descriptionText = "Has 1 element";
     }
-    if ("startDate" in emp) {
-        console.log(`Start Date: ${emp.startDate}`);
+    else if (element.length > 1) {
+        descriptionText = `Has ${element.length} elements`;
     }
-};
-printEmployeeInfo(e1);
-class Car {
-    drive() {
-        console.log("Driving...");
-    }
+    return [element, descriptionText];
 }
-class Truck {
-    drive() {
-        console.log("Trucking...");
-    }
-    loadCargo(amount) {
-        console.log(`Loading cargo: ${amount} `);
-    }
+console.log(countAndDescribe("Testing"));
+function extractAndConvert(obj, key) {
+    return obj[key];
 }
-const v1 = new Car();
-const v2 = new Truck();
-const useVehicle = (vehicle) => {
-    vehicle.drive();
-    if (vehicle instanceof Truck) {
-        vehicle.loadCargo(1000);
-    }
-};
-useVehicle(v2);
-const animalSpeed = (animal) => {
-    let speed;
-    switch (animal.type) {
-        case "bird":
-            speed = animal.flyingSpeed;
-            break;
-        case "horse":
-            speed = animal.runningSpeed;
-    }
-    console.log(`Moving at speed ${speed}`);
-};
-animalSpeed({ type: "bird", flyingSpeed: 10 });
-const button = document.querySelector("#main-button");
-const userInput = document.getElementById("user-input");
-userInput.value = "Hello";
-if (userInput) {
-    userInput.value = "Hello";
-}
-const errors = {
-    email: "Not a valid email!",
-    username: "Must start with a capital letter",
-};
-const fetchedUserData = {
-    id: "u1",
-    name: "Rik",
-    job: { title: "Dev", description: "TypeScript" },
-};
-console.log((_a = fetchedUserData === null || fetchedUserData === void 0 ? void 0 : fetchedUserData.job) === null || _a === void 0 ? void 0 : _a.title);
-const usersInput = null;
-const storedData = usersInput !== null && usersInput !== void 0 ? usersInput : "DEFAULT";
-console.log(storedData);
+extractAndConvert({ name: "Rik" }, "name");
 //# sourceMappingURL=app.js.map
