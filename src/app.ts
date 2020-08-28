@@ -1,5 +1,7 @@
 // GENERICS
 
+//  Flexibility combined with Type Safety
+
 // Array<string> is the same as string[]
 const names: Array<string> = ["Rik", "Max"];
 
@@ -52,3 +54,73 @@ function extractAndConvert<T extends object, U extends keyof T>(
 }
 
 extractAndConvert({ name: "Rik" }, "name");
+
+// GENERIC CLASSES
+
+class DataStorage<T extends string | number | boolean> {
+	private data: T[] = [];
+
+	addItem(item: T) {
+		this.data.push(item);
+	}
+
+	removeItem(item: T) {
+		if (this.data.indexOf(item) === -1) {
+			return;
+		}
+		this.data.splice(this.data.indexOf(item), 1);
+	}
+
+	getItems() {
+		return [...this.data];
+	}
+}
+
+// as in functions, you can dynamically set types, here during instantiation
+const textStorage = new DataStorage<string>();
+textStorage.addItem("Rik");
+textStorage.addItem("Max");
+textStorage.removeItem("Max");
+console.log(textStorage.getItems());
+
+const numberStorage = new DataStorage<number>();
+
+// Reminder: objects in JS are reference types i.e non-primitive. Should use a more specialised data storage for objects, so we don't get the behaviour below. The removeItem fn needs changing.
+// Hence, we have constrained the T in the DataStorage class to primitive types.
+// const objStorage = new DataStorage<object>()
+// objStorage.addItem({name: 'Rikesh'})
+// objStorage.addItem({name: 'Max'})
+// objStorage.removeItem({name: 'Max'}) // [{ name: 'Rikesh }]
+// objStorage.removeItem({name: 'Rikesh'}) // [{ name: 'Rikesh }]
+// console.log(objStorage.getItems())
+
+// GENERIC UTILITY TYPES
+
+// These are a few examples, see docs for full list
+
+// partial types - properties are optional
+interface CourseGoal {
+	title: string;
+	description: string;
+	completeUntil: Date;
+}
+
+// without the partial, TS would complain about the empty courseGoal obj
+// ofc you could just return { title: title, description: description, completeUntil: date } but this is just to show how you could use a Partial.
+function createCourseGoal(
+	title: string,
+	description: string,
+	date: Date
+): CourseGoal {
+	let courseGoal: Partial<CourseGoal> = {};
+	courseGoal.title = title;
+	courseGoal.description = description;
+	courseGoal.completeUntil = date;
+	return courseGoal as CourseGoal;
+}
+
+// readonly types - not allowed to change properties.
+
+const foo: Readonly<string[]> = ["Rik", "Sports"];
+// foo.push("Max");
+// foo.pop();

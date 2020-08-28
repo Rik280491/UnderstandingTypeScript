@@ -28,4 +28,35 @@ function extractAndConvert(obj, key) {
     return obj[key];
 }
 extractAndConvert({ name: "Rik" }, "name");
+class DataStorage {
+    constructor() {
+        this.data = [];
+    }
+    addItem(item) {
+        this.data.push(item);
+    }
+    removeItem(item) {
+        if (this.data.indexOf(item) === -1) {
+            return;
+        }
+        this.data.splice(this.data.indexOf(item), 1);
+    }
+    getItems() {
+        return [...this.data];
+    }
+}
+const textStorage = new DataStorage();
+textStorage.addItem("Rik");
+textStorage.addItem("Max");
+textStorage.removeItem("Max");
+console.log(textStorage.getItems());
+const numberStorage = new DataStorage();
+function createCourseGoal(title, description, date) {
+    let courseGoal = {};
+    courseGoal.title = title;
+    courseGoal.description = description;
+    courseGoal.completeUntil = date;
+    return courseGoal;
+}
+const foo = ["Rik", "Sports"];
 //# sourceMappingURL=app.js.map
