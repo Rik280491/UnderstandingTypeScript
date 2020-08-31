@@ -1,126 +1,99 @@
-// GENERICS
+//  DECORATORS  //
+// meta programming //
 
-//  Flexibility combined with Type Safety
-
-// Array<string> is the same as string[]
-const names: Array<string> = ["Rik", "Max"];
-
-// Promise<string> says that this is a promise that will yield a string
-const promise: Promise<string> = new Promise((resolve, reject) => {
-	setTimeout(() => {
-		resolve("This is done!");
-	}, 2000);
-});
-
-// so if we declare Promise<number> this would bug out - cant call split on number
-promise.then((data) => {
-	data.split(" ");
-});
-
-// CUSTOM GENERICS
-
-// types are set dynamically when we call the function
-// extends is a constraint, must now pass objects in.
-function merge<T extends object, U extends object>(objA: T, objB: U) {
-	return Object.assign(objA, objB);
+// a decorator is a function, lots of decorator fns start with a capital, but this is not a must
+// this is a decorator factory - the decorator function(ln 7) is returned within the Logger fn
+function Logger(logString: string) {
+	return function (constructor: any) {
+		console.log(logString);
+		const p = new constructor();
+		console.log(p.name); // "Rik"
+	};
 }
 
-const mergedObj = merge({ name: "Rik" }, { age: 29 });
-console.log(mergedObj.name);
-
-// without this (or a custom type) we cannot call length on element in the countAndDescribe fn. We are ensuring element has a length property
-interface Lenghty {
-	length: number;
-}
-
-function countAndDescribe<T extends Lenghty>(element: T): [T, string] {
-	let descriptionText = "No value";
-	if (element.length === 1) {
-		descriptionText = "Has 1 element";
-	} else if (element.length > 1) {
-		descriptionText = `Has ${element.length} elements`;
-	}
-	return [element, descriptionText];
-}
-
-console.log(countAndDescribe("Testing"));
-
-// keyof constraint. To tell TS that U is a key in the U object.
-function extractAndConvert<T extends object, U extends keyof T>(
-	obj: T,
-	key: U
-) {
-	return obj[key];
-}
-
-extractAndConvert({ name: "Rik" }, "name");
-
-// GENERIC CLASSES
-
-class DataStorage<T extends string | number | boolean> {
-	private data: T[] = [];
-
-	addItem(item: T) {
-		this.data.push(item);
-	}
-
-	removeItem(item: T) {
-		if (this.data.indexOf(item) === -1) {
-			return;
+// underscore on ln17 tells TS that we are aware but will not be using it.
+// here we've created a decorator to find an element on the dom(hookId) and change its text(template)
+function WithTemplate(template: string, hookId: string) {
+	return function (_: Function) {
+		const hookEl = document.getElementById(hookId);
+		if (hookEl) {
+			hookEl.innerHTML = template;
 		}
-		this.data.splice(this.data.indexOf(item), 1);
-	}
+	};
+}
 
-	getItems() {
-		return [...this.data];
+// with multiple decorators the lowest decorator fn runs first, bottom up. @WithTemplate and then @Logger in this case
+@Logger("LOGGING - PERSON")
+@WithTemplate("<h1>My Person Object</h1>", "app")
+class Person {
+	name = "Rik";
+
+	constructor() {
+		console.log("Creating person object...");
 	}
 }
 
-// as in functions, you can dynamically set types, here during instantiation
-const textStorage = new DataStorage<string>();
-textStorage.addItem("Rik");
-textStorage.addItem("Max");
-textStorage.removeItem("Max");
-console.log(textStorage.getItems());
+const pers = new Person();
+console.log(pers);
 
-const numberStorage = new DataStorage<number>();
+// --
+// decorators can be used elsewhere, not just classes
 
-// Reminder: objects in JS are reference types i.e non-primitive. Should use a more specialised data storage for objects, so we don't get the behaviour below. The removeItem fn needs changing.
-// Hence, we have constrained the T in the DataStorage class to primitive types.
-// const objStorage = new DataStorage<object>()
-// objStorage.addItem({name: 'Rikesh'})
-// objStorage.addItem({name: 'Max'})
-// objStorage.removeItem({name: 'Max'}) // [{ name: 'Rikesh }]
-// objStorage.removeItem({name: 'Rikesh'}) // [{ name: 'Rikesh }]
-// console.log(objStorage.getItems())
+// calling dec on a property
+function Log(target: any, propertyName: string) {
+	console.log("Property Decorator!");
+	console.log(target, propertyName);
+}
 
-// GENERIC UTILITY TYPES
+// calling dec on an accessor
+function Log2(target: any, name: string, descriptor: PropertyDescriptor) {
+	console.log("Accessor Decorator!");
+	console.log(target);
+	console.log(name);
+	console.log(descriptor);
+}
 
-// These are a few examples, see docs for full list
+// calling dec on method
+function Log3(
+	target: any,
+	name: string | Symbol,
+	descriptor: PropertyDescriptor
+) {
+	console.log("Method Decorator!");
+	console.log(target);
+	console.log(name);
+	console.log(descriptor);
+}
 
-// partial types - properties are optional
-interface CourseGoal {
+// calling dec on parameters
+// name arg is the name of the method. position is which parameter it is in the method (its the only param here so it will be 0 (index)).
+function Log4(target: any, name: string | Symbol, position: number) {
+	console.log("Parameter Decorator!");
+	console.log(target);
+	console.log(name);
+	console.log(position);
+}
+
+class Product {
+	@Log
 	title: string;
-	description: string;
-	completeUntil: Date;
+	private _price: number;
+
+	@Log2
+	set price(val: number) {
+		if (val > 0) {
+			this._price = val;
+		} else {
+			throw new Error("Invalid Price - should be positive!");
+		}
+	}
+	constructor(t: string, p: number) {
+		this.title = t;
+		this._price = p;
+	}
+
+	@Log3
+	getPriceWithTax(@Log4 tax: number) {
+		return this._price * (1 + tax);
+	}
 }
-
-// without the partial, TS would complain about the empty courseGoal obj
-// ofc you could just return { title: title, description: description, completeUntil: date } but this is just to show how you could use a Partial.
-function createCourseGoal(
-	title: string,
-	description: string,
-	date: Date
-): CourseGoal {
-	let courseGoal: Partial<CourseGoal> = {};
-	courseGoal.title = title;
-	courseGoal.description = description;
-	courseGoal.completeUntil = date;
-	return courseGoal as CourseGoal;
-}
-
-// readonly types - not allowed to change properties.
-
-const foo: Readonly<string[]> = ["Rik", "Sports"];
-// foo.push("Max");
-// foo.pop();

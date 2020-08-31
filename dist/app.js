@@ -1,62 +1,87 @@
 "use strict";
-const names = ["Rik", "Max"];
-const promise = new Promise((resolve, reject) => {
-    setTimeout(() => {
-        resolve("This is done!");
-    }, 2000);
-});
-promise.then((data) => {
-    data.split(" ");
-});
-function merge(objA, objB) {
-    return Object.assign(objA, objB);
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+function Logger(logString) {
+    return function (constructor) {
+        console.log(logString);
+        const p = new constructor();
+        console.log(p.name);
+    };
 }
-const mergedObj = merge({ name: "Rik" }, { age: 29 });
-console.log(mergedObj.name);
-function countAndDescribe(element) {
-    let descriptionText = "No value";
-    if (element.length === 1) {
-        descriptionText = "Has 1 element";
-    }
-    else if (element.length > 1) {
-        descriptionText = `Has ${element.length} elements`;
-    }
-    return [element, descriptionText];
-}
-console.log(countAndDescribe("Testing"));
-function extractAndConvert(obj, key) {
-    return obj[key];
-}
-extractAndConvert({ name: "Rik" }, "name");
-class DataStorage {
-    constructor() {
-        this.data = [];
-    }
-    addItem(item) {
-        this.data.push(item);
-    }
-    removeItem(item) {
-        if (this.data.indexOf(item) === -1) {
-            return;
+function WithTemplate(template, hookId) {
+    return function (_) {
+        const hookEl = document.getElementById(hookId);
+        if (hookEl) {
+            hookEl.innerHTML = template;
         }
-        this.data.splice(this.data.indexOf(item), 1);
+    };
+}
+let Person = class Person {
+    constructor() {
+        this.name = "Rik";
+        console.log("Creating person object...");
     }
-    getItems() {
-        return [...this.data];
+};
+Person = __decorate([
+    Logger("LOGGING - PERSON"),
+    WithTemplate("<h1>My Person Object</h1>", "app")
+], Person);
+const pers = new Person();
+console.log(pers);
+function Log(target, propertyName) {
+    console.log("Property Decorator!");
+    console.log(target, propertyName);
+}
+function Log2(target, name, descriptor) {
+    console.log("Accessor Decorator!");
+    console.log(target);
+    console.log(name);
+    console.log(descriptor);
+}
+function Log3(target, name, descriptor) {
+    console.log("Method Decorator!");
+    console.log(target);
+    console.log(name);
+    console.log(descriptor);
+}
+function Log4(target, name, position) {
+    console.log("Parameter Decorator!");
+    console.log(target);
+    console.log(name);
+    console.log(position);
+}
+class Product {
+    constructor(t, p) {
+        this.title = t;
+        this._price = p;
+    }
+    set price(val) {
+        if (val > 0) {
+            this._price = val;
+        }
+        else {
+            throw new Error("Invalid Price - should be positive!");
+        }
+    }
+    getPriceWithTax(tax) {
+        return this._price * (1 + tax);
     }
 }
-const textStorage = new DataStorage();
-textStorage.addItem("Rik");
-textStorage.addItem("Max");
-textStorage.removeItem("Max");
-console.log(textStorage.getItems());
-const numberStorage = new DataStorage();
-function createCourseGoal(title, description, date) {
-    let courseGoal = {};
-    courseGoal.title = title;
-    courseGoal.description = description;
-    courseGoal.completeUntil = date;
-    return courseGoal;
-}
-const foo = ["Rik", "Sports"];
+__decorate([
+    Log
+], Product.prototype, "title", void 0);
+__decorate([
+    Log2
+], Product.prototype, "price", null);
+__decorate([
+    Log3,
+    __param(0, Log4)
+], Product.prototype, "getPriceWithTax", null);
 //# sourceMappingURL=app.js.map
