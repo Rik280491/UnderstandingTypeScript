@@ -11,14 +11,27 @@ function Logger(logString: string) {
 	};
 }
 
-// underscore on ln17 tells TS that we are aware but will not be using it.
 // here we've created a decorator to find an element on the dom(hookId) and change its text(template)
+//  can return a class in a decorator. here, the return only runs when the class is instantiated. Decorators run when the class is declared and this may not always be desirable, so this is a good solution
 function WithTemplate(template: string, hookId: string) {
-	return function (_: Function) {
-		const hookEl = document.getElementById(hookId);
-		if (hookEl) {
-			hookEl.innerHTML = template;
-		}
+	return function <T extends { new (...args: any[]): { name: string } }>(
+		originalConstructor: T
+	) {
+		// const hookEl = document.getElementById(hookId);
+		// const p = new originalConstructor()
+		// if (hookEl) {
+		// 	hookEl.innerHTML = template;
+		// }
+		return class extends originalConstructor {
+			constructor(...args: any[]) {
+				super();
+				const hookEl = document.getElementById(hookId);
+				if (hookEl) {
+					hookEl.innerHTML = template;
+					hookEl.querySelector("h1")!.textContent = this.name;
+				}
+			}
+		};
 	};
 }
 
@@ -46,14 +59,17 @@ function Log(target: any, propertyName: string) {
 }
 
 // calling dec on an accessor
+// can return a property descriptor
 function Log2(target: any, name: string, descriptor: PropertyDescriptor) {
 	console.log("Accessor Decorator!");
 	console.log(target);
 	console.log(name);
 	console.log(descriptor);
+	// return {enumerable...}
 }
 
 // calling dec on method
+// can also return a property descriptor here too. see ln 118 onwards starting at autobind fn, for method return types
 function Log3(
 	target: any,
 	name: string | Symbol,
@@ -97,3 +113,41 @@ class Product {
 		return this._price * (1 + tax);
 	}
 }
+
+// a decorator to get around needing to bind in an event listener for example.
+// the value of a PropertyDescriptor points to the function.
+// underscore tells TS (also in JS) that you are not interested in the values but need to accept them
+function Autobind(_: any, _2: string, descriptor: PropertyDescriptor) {
+	const originalMethod = descriptor.value;
+	const adjDescriptor: PropertyDescriptor = {
+		configurable: true,
+		enumerable: false,
+		// get: function - same thing as below
+		get() {
+			const boundFn = originalMethod.bind(this);
+			return boundFn;
+		},
+	};
+	return adjDescriptor;
+}
+
+class Printer {
+	message = "This works!";
+
+	@Autobind
+	showMessage() {
+		console.log(this.message);
+	}
+}
+
+const p = new Printer();
+
+const button = document.getElementById("main-button")!;
+// reminder - 'this' refers to the target of the event, so bind(p) or arrow fn is required
+// button.addEventListener('click', p.showMessage.bind(p)) // autobind fn ln 118 is to get around needing to use bind. Just as a demo using decorators, arrow fns remedies this issue post ES6.
+// button.addEventListener('click', () => {
+//     p.showMessage()
+// })
+
+// this works with the autobind decorator!
+button.addEventListener("click", p.showMessage);
